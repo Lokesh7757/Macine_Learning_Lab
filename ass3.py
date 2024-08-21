@@ -1,61 +1,41 @@
-import seaborn as sns
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn.datasets import load_boston
-import pandas as pd
+from sklearn.metrics import mean_squared_error
 
-# Load the Boston housing dataset
-boston = load_boston()
-df = pd.DataFrame(boston.data, columns=boston.feature_names)
-df['PRICE'] = boston.target
+# Generate synthetic data for pizza prices
+np.random.seed(42)
+size = np.random.uniform(8, 20, 100)  # Pizza sizes between 8 and 20 inches
+price = 5 + 2.5 * size + np.random.normal(0, 5, 100)  # Price based on size with some noise
 
-# Print the dataset
-print(df.head())
+# Create a DataFrame
+data = pd.DataFrame({'Size': size, 'Price': price})
 
-# Select 'RM' (average number of rooms per dwelling) as the feature and 'PRICE' as the target
-X = df[['RM']]
-y = df['PRICE']
-
-# Scatter plot of the data
-plt.scatter(X, y)
-plt.xlabel("Average Number of Rooms")
-plt.ylabel("Price")
-plt.title("Scatter plot of Price vs. Average Number of Rooms")
-plt.show()
+# Define features (X) and target (y)
+X = data[['Size']]
+y = data['Price']
 
 # Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=23)
-print("Training features:\n", X_train.head())
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-# Reshape data
-X_train = np.array(X_train).reshape(-1, 1)
-X_test = np.array(X_test).reshape(-1, 1)
+# Create and train the Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
 
-# Train a Linear Regression model
-lr = LinearRegression()
-lr.fit(X_train, y_train)
+# Make predictions
+y_pred = model.predict(X_test)
 
-# Get the model parameters
-c = lr.intercept_
-m = lr.coef_
-print("Intercept (c):", c)
-print("Coefficient (m):", m)
-
-# Predict on the training set
-y_pred_train = lr.predict(X_train)
-print("Predicted values:\n", y_pred_train)
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse:.2f}")
 
 # Visualize the results
-plt.scatter(X_train, y_train, color='blue', label='Actual')
-plt.plot(X_train, y_pred_train, color='red', label='Fitted Line')
-plt.xlabel("Average Number of Rooms")
-plt.ylabel("Price")
-plt.title("Linear Regression Fit")
+plt.scatter(X_test, y_test, color='blue', label='Actual Prices')
+plt.plot(X_test, y_pred, color='red', linewidth=2, label='Fitted Line')
+plt.xlabel('Pizza Size (in inches)')
+plt.ylabel('Price')
+plt.title('Pizza Price vs. Size')
 plt.legend()
 plt.show()
-
-# Predict and evaluate on the test set
-y_pred_test = lr.predict(X_test)
-print("Test set predictions:\n", y_pred_test)
